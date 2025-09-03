@@ -79,23 +79,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add animation classes when elements come into view
-    const animateOnScroll = function() {
-        const elements = document.querySelectorAll('.animate-on-scroll');
-        elements.forEach(element => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementBottom = element.getBoundingClientRect().bottom;
-            
-            if (elementTop < window.innerHeight && elementBottom > 0) {
-                element.classList.add('fade-in');
-            }
-        });
+    // Animate skill bars on scroll
+    const animateSkills = () => {
+        const skillSection = document.querySelector('#skills');
+        if (!skillSection) return;
+
+        const skillObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const progressBars = entry.target.querySelectorAll('.progress-bar');
+                    progressBars.forEach(bar => {
+                        bar.style.width = bar.parentElement.getAttribute('aria-valuenow') + '%';
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        skillObserver.observe(skillSection);
     };
 
-    // Run animation check on scroll
-    window.addEventListener('scroll', animateOnScroll);
-    // Run once on page load
-    animateOnScroll();
+    // Scroll to top button
+    const scrollTopBtn = document.createElement('button');
+    scrollTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    scrollTopBtn.id = 'scrollTopBtn';
+    document.body.appendChild(scrollTopBtn);
+
+    const handleScroll = () => {
+        if (window.scrollY > 300) {
+            scrollTopBtn.classList.add('show');
+        } else {
+            scrollTopBtn.classList.remove('show');
+        }
+    };
+
+    scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Enhanced scroll animations with intersection observer
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe all cards and badges
+    document.querySelectorAll('.card, .tech-stack .badge, .achievements .badge').forEach(el => {
+        observer.observe(el);
+    });
+
+    window.addEventListener('scroll', () => {
+        handleScroll();
+    });
+    
+    animateSkills();
 });
 
 // Navbar background color change on scroll
@@ -209,42 +258,45 @@ document.querySelectorAll('.tech-stack .badge').forEach(badge => {
     });
 });
 
-// Add typing effect to hero section
-function typeWriter(element, text, speed = 150, delay = 0) {
-    let i = 0;
-    element.textContent = '';
-    
-    setTimeout(() => {
-        function type() {
-            if (i < text.length) {
-                element.textContent += text.charAt(i);
-                i++;
-                setTimeout(type, speed);
+// Typewriter effect for cycling through multiple titles
+function typeWriterCycle(element, titles, speed = 100, pause = 1200) {
+    let titleIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+
+    function type() {
+        const currentTitle = titles[titleIndex];
+        if (!isDeleting) {
+            element.textContent = currentTitle.substring(0, charIndex + 1);
+            charIndex++;
+            if (charIndex === currentTitle.length) {
+                isDeleting = true;
+                setTimeout(type, pause);
+                return;
+            }
+        } else {
+            element.textContent = currentTitle.substring(0, charIndex - 1);
+            charIndex--;
+            if (charIndex === 0) {
+                isDeleting = false;
+                titleIndex = (titleIndex + 1) % titles.length;
             }
         }
-        type();
-    }, delay);
+        setTimeout(type, isDeleting ? speed / 2 : speed);
+    }
+    type();
 }
 
-// Initialize typing effects when DOM is fully loaded
+// Initialize typing effect for the hero section's dynamic title
 document.addEventListener('DOMContentLoaded', function() {
-    const heroTitle = document.querySelector('.hero-section h1');
-    const heroSubtitle = document.querySelector('.hero-section h2');
-    const heroLead = document.querySelector('.hero-section .lead');
-    
-    if (heroTitle) {
-        const titleText = heroTitle.textContent;
-        typeWriter(heroTitle, titleText, 150, 500); // Start after 500ms
-    }
-    
-    if (heroSubtitle) {
-        const subtitleText = heroSubtitle.textContent;
-        typeWriter(heroSubtitle, subtitleText, 100, 1500); // Start after 1.5s
-    }
-    
-    if (heroLead) {
-        const leadText = heroLead.textContent;
-        typeWriter(heroLead, leadText, 100, 2500); // Start after 2.5s
+    const typedTitle = document.querySelector('.typed-title');
+    if (typedTitle) {
+        const titles = [
+            'C# Software Engineer',
+            'Full-Stack .NET Developer',
+            '.NET Software Engineer'
+        ];
+        typeWriterCycle(typedTitle, titles, 90, 1200);
     }
 });
 
@@ -253,4 +305,4 @@ window.addEventListener('scroll', function() {
     const hero = document.querySelector('.hero-section');
     const scrolled = window.pageYOffset;
     hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
-}); 
+});
