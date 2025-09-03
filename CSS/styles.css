@@ -188,6 +188,28 @@ section:last-of-type {
     color: var(--secondary-color) !important;
 }
 
+.professional-highlights li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.professional-highlights i {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 30px; /* Fixed width for alignment */
+    text-align: center;
+}
+
+.professional-highlights div {
+    display: flex;
+    flex-direction: column;
+}
+
+.professional-highlights strong {
+    font-weight: 600;
+}
+
 /* Buttons */
 .btn {
     border-radius: 25px;
@@ -564,6 +586,7 @@ a:hover {
 .progress {
     background-color: #333;
     border-radius: 5px;
+    height: 0.3rem;
 }
 
 .badge.bg-primary {
